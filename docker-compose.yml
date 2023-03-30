@@ -1,0 +1,20 @@
+version: "3.6"
+services:
+  gpt-chatter:
+    image: gpt-chatter:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: gpt-chatter
+    environment:
+      - TZ=Asia/Tokyo
+    env_file: env
+    restart: on-failure
+    networks:
+      - default
+    logging:
+      driver: syslog
+      options:
+        syslog-facility: daemon
+        tag: gpt-chatter/{{.Name}}/{{.ID}}
+
