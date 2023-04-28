@@ -1,3 +1,11 @@
 .DS_Store
 env
-
+env*
+env.*
+__pycache__
+/secrets/*
+!/secrets/*.sample
+/db/*
+/*.sh
+*.bak
+*.log

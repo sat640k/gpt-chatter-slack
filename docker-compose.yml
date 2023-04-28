@@ -8,13 +8,62 @@ services:
     container_name: gpt-chatter
     environment:
       - TZ=Asia/Tokyo
-    env_file: env
+      - OPENAI_ORG_TOKEN_FILE=/run/secrets/OPENAI_ORG_TOKEN
+      - OPENAI_API_TOKEN_FILE=/run/secrets/OPENAI_API_TOKEN
+      - SLACK_APP_TOKEN_FILE=/run/secrets/SLACK_APP_TOKEN
+      - SLACK_BOT_TOKEN_FILE=/run/secrets/SLACK_BOT_TOKEN
+      - DATABASE_URL_FILE=/run/secrets/DATABASE_URL
+      - CLIENT_ENCODING=utf8
     restart: on-failure
+    depends_on:
+      - db
     networks:
       - default
+    #volumes:
+    #  - ./db:/root/db       # for sqlite
+    secrets:
+      - OPENAI_ORG_TOKEN
+      - OPENAI_API_TOKEN
+      - SLACK_APP_TOKEN
+      - SLACK_BOT_TOKEN
+      - DATABASE_URL
     logging:
       driver: syslog
       options:
         syslog-facility: daemon
-        tag: gpt-chatter/{{.Name}}/{{.ID}}
+        tag: gpt-chatter-slack/{{.Name}}/{{.ID}}
 
+  db:
+    image: postgres:14
+    container_name: gpt-chatter-db
+    restart: always
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_USER=gpt-chatter
+      - POSTGRES_DB=gpt-chatter
+      - POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD
+    networks:
+      - default
+    volumes:
+      - ./db:/var/lib/postgresql/data       # for pgsql
+    secrets:
+      - POSTGRES_PASSWORD
+    logging:
+      driver: syslog
+      options:
+        syslog-facility: daemon
+        tag: gpt-chatter-slack/{{.Name}}/{{.ID}}
+
+secrets:
+  OPENAI_ORG_TOKEN:
+    file: ./secrets/OPENAI_ORG_TOKEN
+  OPENAI_API_TOKEN:
+    file: ./secrets/OPENAI_API_TOKEN
+  SLACK_APP_TOKEN:
+    file: ./secrets/SLACK_APP_TOKEN
+  SLACK_BOT_TOKEN:
+    file: ./secrets/SLACK_BOT_TOKEN
+  DATABASE_URL:
+    file: ./secrets/DATABASE_URL
+  POSTGRES_PASSWORD:
+    file: ./secrets/POSTGRES_PASSWORD
